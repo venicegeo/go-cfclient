@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"time"
@@ -253,7 +254,7 @@ func (c *Client) NewRequestWithBody(method, path string, body io.Reader) *reques
 func (c *Client) DoRequest(r *request) (*http.Response, error) {
 	req, err := r.toHTTP()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error converting to http.Request")
 	}
 	return c.Do(req)
 }
@@ -266,15 +267,15 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 	resp, err := c.Config.HttpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "http client error")
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
 		var cfErr CloudFoundryError
 		if err := decodeBody(resp, &cfErr); err != nil {
-			return resp, errors.Wrap(err, "Unable to decode body")
+			return resp, errors.Wrap(err, "Unable to decode body, http "+strconv.Itoa(resp.StatusCode))
 		}
-		return nil, cfErr
+		return nil, errors.Wrap(cfErr, "cf error in body, http "+strconv.Itoa(resp.StatusCode))
 	}
 
 	return resp, nil

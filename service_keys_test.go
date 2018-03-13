@@ -173,7 +173,7 @@ func TestCreateServiceKey(t *testing.T) {
 		}
 
 		key, err := client.CreateServiceKey(csr)
-		So(err.Error(), ShouldEqual, "cfclient: error (360001): CF-ServiceKeyNameTaken")
+		So(err.Error(), ShouldEqual, "cf error in body, http 400: cfclient: error (360001): CF-ServiceKeyNameTaken")
 
 		So(key.Name, ShouldEqual, "")
 	})
